@@ -9,9 +9,9 @@ import datetime
 domain = "https://reservation.frontdesksuite.ca"
 main_page = "{domain}/rcfs/{location_id}/"
 location = "richcraftkanata"
-activity = "Basketball - adult"
+activity = "Volleyball - adult"
 num_people = "1"
-weekday = 3
+weekday = 5
 time_hour = 11
 time_minute = 00
 
@@ -58,7 +58,6 @@ def main():
 
         print(f"\nGetting page: {next_page_request_dict['url']}")
         response = session.request(**next_page_request_dict)   # TODO: handle post requests
-        breakpoint()
         if response.history:
             for resp in response.history:
                 if resp.is_redirect:
@@ -121,11 +120,14 @@ def time_selection_handler(page_text):
 
     links = soup.find_all('a')
     ul = None
+    # TODO: handle if full: Currently full days will trigger else statement. (not reliably, sometimes there are greyed out times, sometimes there are not.)
     for link in links:
         if link.find(string=re.compile(next_date.strftime("%A %B %d, %Y"))):
             ul = link.parent.find('ul', {'class': 'times-list'})
             break
     else:
+        print(f"Could not find times for day {next_date.strftime('%A %B %d, %Y')}")
+        # TODO: refresh until times are available
         return None #TODO: throw error
     
     times = ul.find_all('li', {'class': 'time'})
@@ -135,6 +137,7 @@ def time_selection_handler(page_text):
             time_a = time.find("a")
             break
     else:
+        print(f"Could not find {next_date.strftime('%I:%M %p')} slot on date {next_date.strftime('%A %B %d, %Y')}")
         return None #TODO: throw error
 
     select_time_exec = time_a['onclick'].split(';')[0]
