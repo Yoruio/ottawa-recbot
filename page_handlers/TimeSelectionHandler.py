@@ -15,15 +15,11 @@ class TimeSelectionHandler(PageHandler):
             filled_form['dateTime'] = dateTime
             filled_form['timeHash'] = timeHash
 
-        print("In time selection handler")
         now = datetime.datetime.now()
         date_diff = (weekday - now.weekday() + 7) % 7
         next_date = now + datetime.timedelta(days=date_diff)
         next_date = next_date.replace(second=00, minute=time_minute, hour=time_hour)
-        # print(f"time = {next_date.strftime("%I:%M %p %A %B %d, %Y")}")
 
-        # Get date expansion link
-        print('Parsing page')
         soup = bs(page_text, 'html.parser')
 
         links = soup.find_all('a')
@@ -49,8 +45,8 @@ class TimeSelectionHandler(PageHandler):
             return None #TODO: throw error
 
         select_time_exec = time_a['onclick'].split(';')[0]
-        null = None                 # JS compatibility bs... this was a mistake... never do tihs again.
-        exec(select_time_exec)      # The most convoluted weakness ever. richcraft can really screw us with this
+        null = None                 # TODO: make this better.
+        exec(select_time_exec)      
 
         form = soup.find('form')
         form_inputs = form.find_all('input')
@@ -59,8 +55,7 @@ class TimeSelectionHandler(PageHandler):
                 filled_form[form_input['name']] = form_input['value']
         
         filled_form['reservationCount'] = num_people
-        # kill me
 
-        print(filled_form)
+        print(f"TimeSelection form: {filled_form}")
         command_to_send = 'SubmitTimeSelection'
         return PageRequest(f'/rcfs/richcraftkanata/ReserveTime/{command_to_send}?culture=en', 'POST', data = filled_form)
