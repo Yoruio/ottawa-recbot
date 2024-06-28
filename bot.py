@@ -2,36 +2,30 @@ from bs4 import BeautifulSoup as bs
 import requests
 import re
 import urllib
-from typing import NamedTuple
-import datetime
+import os
+import pkgutil
 
-# TODO: use argparse
-domain = "https://reservation.frontdesksuite.ca"
-main_page = "{domain}/rcfs/{location_id}/"
-location = "richcraftkanata"
-activity = "Volleyball - adult"
-num_people = "1"
-weekday = 5
-time_hour = 11
-time_minute = 00
+from lib.utils import page_actions, PageRequest
+import importlib
 
+# Dynamically import all page handlers
+page_handlers_dir = 'page_handlers'
+page_handlers_path = f"{os.path.dirname(os.path.realpath(__file__))}/{page_handlers_dir}"
+for loader, module_name, _ in pkgutil.walk_packages([page_handlers_path]):
+    importlib.import_module(f"page_handlers.{module_name}")
 
-page_actions = dict()
-
-class PageRequest(NamedTuple):
-    url: str = None
-    method: str = None
-    files: dict = None
-    data: dict = None
-
-
-def page_action(url_substring: str):
-    def decorator(func):
-        page_actions[url_substring] = func
-        return func
-    return decorator
-
-def main():
+# TODO: use logging module instead of print statements
+def register(
+        location: str,
+        activity: str,
+        num_people: str,
+        weekday: int,
+        time_hour: int,
+        time_minute: int,
+        domain = "https://reservation.frontdesksuite.ca",
+        main_page = "{domain}/rcfs/{location_id}/"
+    ):
+    local_kwargs = locals()
     session = requests.Session()
     print(f"Parsing page: {main_page.format(domain = domain, location_id = location)}")
     response = session.request('GET', main_page.format(domain = domain, location_id = location))
@@ -64,98 +58,28 @@ def main():
                     print(f"redir: {resp.status_code} | {resp.headers['location']}")
         page_url = response.url
 
-        matching_pages = [page_substr for page_substr in page_actions.keys() if page_substr in re.split('/|\?', page_url)]
+        page_handler = page_actions.get_handler(page_url)
+        next_page_request = page_handler(
+            response.text,
+            **local_kwargs
+        )
 
-        if len(matching_pages) == 1:
-            next_page_request = page_actions[matching_pages[0]](response.text)
-            if next_page_request is None:
-                print("Success")
-                break
-        elif len(matching_pages) == 0:
-            print("No matches found")
-            print(response.text)
+        if next_page_request is None:
+            print("Finsihed")
             return
-        else:
-            print("Multiple matches found")
-            return
+        
+def main():
+    register(
+        domain = "https://reservation.frontdesksuite.ca",
+        main_page = "{domain}/rcfs/{location_id}/",
+        location = "richcraftkanata",
+        activity = "Volleyball - adult",
+        num_people = "1",
+        weekday = 5,
+        time_hour = 11,
+        time_minute = 00
+    )
 
-@page_action("SlotCountSelection")
-# Return next_page pageRequest
-def slot_count_selection_handler(page_text):
-    print("In slot count selection handler")
-    print('Parsing page')
-    soup = bs(page_text, 'html.parser')
-    form = soup.find('form')
-    form_inputs = form.find_all('input')
-    filled_form = dict()
-    for form_input in form_inputs:
-        filled_form[form_input['name']] = form_input['value']
-    filled_form['ReservationCount'] = num_people
-    print(filled_form)
-    command_to_send = 'SubmitSlotCount'
-    return PageRequest(f'/rcfs/richcraftkanata/ReserveTime/{command_to_send}?culture=en', 'POST', filled_form)
-
-@page_action("TimeSelection")
-def time_selection_handler(page_text):
-
-    # This 
-    filled_form = dict()
-    def selectTime(queueId, categoryId, dateTime, timeHash):
-        nonlocal filled_form
-        filled_form['queueId'] = queueId
-        filled_form['categoryId'] = categoryId
-        filled_form['dateTime'] = dateTime
-        filled_form['timeHash'] = timeHash
-
-    print("In time selection handler")
-    now = datetime.datetime.now()
-    date_diff = (weekday - now.weekday() + 7) % 7
-    next_date = now + datetime.timedelta(days=date_diff)
-    next_date = next_date.replace(second=00, minute=time_minute, hour=time_hour)
-    # print(f"time = {next_date.strftime("%I:%M %p %A %B %d, %Y")}")
-
-    # Get date expansion link
-    print('Parsing page')
-    soup = bs(page_text, 'html.parser')
-
-    links = soup.find_all('a')
-    ul = None
-    # TODO: handle if full: Currently full days will trigger else statement. (not reliably, sometimes there are greyed out times, sometimes there are not.)
-    for link in links:
-        if link.find(string=re.compile(next_date.strftime("%A %B %d, %Y"))):
-            ul = link.parent.find('ul', {'class': 'times-list'})
-            break
-    else:
-        print(f"Could not find times for day {next_date.strftime('%A %B %d, %Y')}")
-        # TODO: refresh until times are available
-        return None #TODO: throw error
-    
-    times = ul.find_all('li', {'class': 'time'})
-    time_a = None
-    for time in times:
-        if time.find(string=re.compile(next_date.strftime("%I:%M %p"))):
-            time_a = time.find("a")
-            break
-    else:
-        print(f"Could not find {next_date.strftime('%I:%M %p')} slot on date {next_date.strftime('%A %B %d, %Y')}")
-        return None #TODO: throw error
-
-    select_time_exec = time_a['onclick'].split(';')[0]
-    null = None                 # JS compatibility bs... this was a mistake... never do tihs again.
-    exec(select_time_exec)      #The most convoluted weakness ever. richcraft can really screw us with this
-
-    form = soup.find('form')
-    form_inputs = form.find_all('input')
-    for form_input in form_inputs:
-        if form_input.has_attr('value'):
-            filled_form[form_input['name']] = form_input['value']
-    
-    filled_form['reservationCount'] = num_people
-    # kill me
-
-    print(filled_form)
-    command_to_send = 'SubmitTimeSelection'
-    return PageRequest(f'/rcfs/richcraftkanata/ReserveTime/{command_to_send}?culture=en', 'POST', data = filled_form)
 
 if __name__ == "__main__":
     main()
