@@ -59,7 +59,7 @@ def register(
         page_url = response.url
 
         page_handler = page_actions.get_handler(page_url)
-        next_page_request = page_handler(
+        next_page_request = page_handler.handle_page(
             response.text,
             **local_kwargs
         )
@@ -69,6 +69,7 @@ def register(
             return
         
 def main():
+    # TODO: Multiprocessing
     register(
         domain = "https://reservation.frontdesksuite.ca",
         main_page = "{domain}/rcfs/{location_id}/",
