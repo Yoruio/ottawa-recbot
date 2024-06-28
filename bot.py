@@ -27,24 +27,12 @@ def register(
     ):
     local_kwargs = locals()
     session = requests.Session()
-    print(f"Parsing page: {main_page.format(domain = domain, location_id = location)}")
-    response = session.request('GET', main_page.format(domain = domain, location_id = location))
-    main_page_soup = bs(response.text, 'html.parser')
 
-    # Find activity link
-    links = main_page_soup.find_all('a')
-    next_page = ""
-    for link in links:
-        if link.find(string=re.compile(activity)):
-            next_page = link['href']
-            break
-    else:
-        print(f"Activity [{activity}] link not found on main page")
-        return
-    
-    next_page_url = urllib.parse.urljoin(domain, next_page)
-    next_page_request = PageRequest(next_page_url, "GET")
-    
+    # Start at landing page for rec location
+    next_page_request = PageRequest(
+        main_page.format(domain = domain, location_id = location),
+        'GET'
+    )
     while True:
         # Parse next page
         next_page_request_dict = next_page_request._asdict()
