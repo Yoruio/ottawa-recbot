@@ -56,7 +56,6 @@ def register(
     while True:
         current_url = driver.current_url
         try:
-            atime = time.perf_counter()
             page_handler = page_actions.get_handler(current_url)
         except NotImplementedError as e:
             print(e)

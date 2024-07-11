@@ -1,11 +1,9 @@
 import datetime
-from selenium.common.exceptions import ElementNotInteractableException, NoSuchElementException
+from selenium.common.exceptions import NoSuchElementException
 import time
 
 from lib.utils import TimeSlotNotAvailable
 from lib.utils import page_actions, PageHandler, HandlerResponse
-
-import asyncio
 
 REFRESH_IF_NOT_FOUND = True
 REFRESH_IF_FULL = True

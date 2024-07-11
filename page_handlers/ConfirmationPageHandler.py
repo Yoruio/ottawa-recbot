@@ -1,4 +1,4 @@
-from lib.utils import page_actions, PageHandler, Email, HandlerResponse
+from lib.utils import page_actions, PageHandler, HandlerResponse
 
 @page_actions.add_handler("ConfirmationPage")
 class ConfirmationPageHandler(PageHandler):
