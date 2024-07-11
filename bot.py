@@ -5,6 +5,7 @@ from selenium_stealth import stealth
 import time
 import json
 import threading
+import traceback
 
 from lib.utils import page_actions, TimeSlotNotAvailable, timer
 import importlib
@@ -27,7 +28,8 @@ def register(
         email_address: str,
         name: str,
         domain = "https://reservation.frontdesksuite.ca",
-        main_page = "{domain}/rcfs/{location_id}/",  
+        main_page = "{domain}/rcfs/{location_id}/",
+        task_id = 0
     ):
     local_kwargs = locals()
 
@@ -38,6 +40,7 @@ def register(
     options.add_experimental_option("excludeSwitches", ["enable-automation"])
     options.add_experimental_option('useAutomationExtension', False)
     driver = webdriver.Chrome(options=options)
+    driver.implicitly_wait(10)
 
     stealth(driver,
         languages=["en-US", "en"],
@@ -52,15 +55,12 @@ def register(
     time.sleep(0.5)
     while True:
         current_url = driver.current_url
-        print(f'At page: {current_url}')
         try:
             atime = time.perf_counter()
             page_handler = page_actions.get_handler(current_url)
-            print(f'time to get handler: {time.perf_counter() - atime}')
         except NotImplementedError as e:
             print(e)
             break
-        print(f"Found handler for page: {page_handler.__name__}")
         
         try:
             resp = page_handler().handle_page(
@@ -70,15 +70,18 @@ def register(
         except TimeSlotNotAvailable as e:
             print(e)
             break
+        except Exception:
+            print(traceback.format_exc())
+            break
 
         if resp.is_terminal:
             print("Terminal page reached.")
             break
         if resp.new_kwargs is not None:
             local_kwargs.update(resp.new_kwargs)
-        print()
 
     time.sleep(10)
+    driver.get_screenshot_as_file(f'./result-{task_num}.png')
 
         
 def main():
@@ -86,7 +89,7 @@ def main():
         activities_list = json.loads(activities.read())
     
     tasks = []
-
+    task_id = 0
     if type(activities_list) != list:
         print("JSON is not formatted as a list")
         return
@@ -94,6 +97,8 @@ def main():
         if type(activity) != dict:
             print("JSON activity list items must all be objects")
             return
+        activity['task_num'] = task_id
+        task_id += 1
         tasks.append(threading.Thread(target=register, kwargs=activity))
 
     for task in tasks:
