@@ -82,7 +82,6 @@ def register(
 
         
 def main():
-    # TODO: JSON-ify this
     with open('./activities.json', 'r') as activities:
         activities_list = json.loads(activities.read())
     
