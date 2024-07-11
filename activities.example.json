@@ -1,0 +1,28 @@
+[
+    {
+        "domain": "https://reservation.frontdesksuite.ca",
+        "main_page": "{domain}/rcfs/{location_id}/",
+        "location": "richcraftkanata",
+        "activity": "Open gym",
+        "num_people": 1,
+        "weekday": 3,
+        "time_hour": 17,
+        "time_minute": 30,
+        "phone_number": "0123456789",
+        "email_address": "test@example.com",
+        "name": "John"
+    },
+    {
+        "domain": "https://reservation.frontdesksuite.ca",
+        "main_page": "{domain}/rcfs/{location_id}/",
+        "location": "richcraftkanata",
+        "activity": "Open gym",
+        "num_people": 1,
+        "weekday": 3,
+        "time_hour": 17,
+        "time_minute": 30,
+        "phone_number": "0123456789",
+        "email_address": "test1@example.com",
+        "name": "Jill"
+    }
+]
