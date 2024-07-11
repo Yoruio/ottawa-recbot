@@ -1,4 +1,4 @@
-from lib.utils import page_actions, PageHandler, HandlerResponse, timer
+from lib.utils import page_actions, PageHandler, HandlerResponse
 import lib.utils as utils
 
 import string
@@ -9,7 +9,6 @@ UNIQUE_TO_EMAIL = True
 @page_actions.add_handler("ContactInfo")
 class ContactInfoHandler(PageHandler):
     def handle_page(self, driver, phone_number, email_address, name, **kwargs) -> HandlerResponse:
-        timer.set_start()
         if UNIQUE_TO_EMAIL:
             rand_str = ''.join(random.choices(string.ascii_uppercase + string.ascii_lowercase + string.digits, k=10))
             split_email = email_address.split('@')

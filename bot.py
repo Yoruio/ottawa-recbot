@@ -7,7 +7,7 @@ import json
 import threading
 import traceback
 
-from lib.utils import page_actions, TimeSlotNotAvailable, timer
+from lib.utils import page_actions, TimeSlotNotAvailable
 import importlib
 
 # Dynamically import all page handlers
