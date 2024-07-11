@@ -80,8 +80,8 @@ def register(
         if resp.new_kwargs is not None:
             local_kwargs.update(resp.new_kwargs)
 
-    time.sleep(10)
-    driver.get_screenshot_as_file(f'./result-{task_num}.png')
+    time.sleep(1)
+    driver.get_screenshot_as_file(f'./result-{task_id}.png')
 
         
 def main():
@@ -97,7 +97,7 @@ def main():
         if type(activity) != dict:
             print("JSON activity list items must all be objects")
             return
-        activity['task_num'] = task_id
+        activity['task_id'] = task_id
         task_id += 1
         tasks.append(threading.Thread(target=register, kwargs=activity))
 
