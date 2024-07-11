@@ -127,20 +127,6 @@ def fill_inputs(inputs: list, values: dict) -> int:
                 input.clear()
             input.send_keys(str(values[input_name]))
             filled_fields += 1
-            
-
-class Timer():
-    def set_start(self):
-        self.start = time.time()
-    
-    def set_end(self):
-        self.end = time.time()
-        return self.end - self.start
-    
-    def get_time(self):
-        return self.end - self.start
-
-timer = Timer()
 
 class ActivityNotAvailable(Exception):
     pass
