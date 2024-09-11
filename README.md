@@ -42,6 +42,11 @@ activities.json is a json file containing a list of objects with the following f
 
 #### .env
 The .env file contains the required information to access and check emails.
+These values can also be stored as environment variables.
 | Field name | Description |
 | ---------- | ----------- |
-| 
+| EMAIL_USERNAME | Username to use to log in to imap server |
+| EMAIL_PASSWORD | Password to use to log in to imap server |
+| EMAIL_SERVER | URL of imap server |
+
+For Gmail accounts, EMAIL_PASSWORD needs to be an [app password](https://support.google.com/accounts/answer/185833?hl=en).
