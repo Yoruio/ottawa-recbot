@@ -7,7 +7,7 @@ import json
 import threading
 import traceback
 
-from lib.utils import page_actions, TimeSlotNotAvailable
+from lib.utils import page_actions, TimeSlotNotAvailable, ActivityNotAvailable
 import importlib
 
 # Dynamically import all page handlers
@@ -66,7 +66,7 @@ def register(
                 driver = driver,
                 **local_kwargs
             )
-        except TimeSlotNotAvailable as e:
+        except (TimeSlotNotAvailable, ActivityNotAvailable) as e:
             print(e)
             break
         except Exception:
