@@ -5,8 +5,12 @@ import time
 from lib.utils import TimeSlotNotAvailable
 from lib.utils import page_actions, PageHandler, HandlerResponse
 
-REFRESH_IF_NOT_FOUND = True
-REFRESH_IF_FULL = True
+REFRESH_IF_NOT_FOUND = False
+RESTART_FLOW_IF_NOT_FOUND = True
+
+REFRESH_IF_FULL = False
+RESTART_FLOW_IF_FULL = True
+
 SLEEP_BETWEEN_REFRESH = 0.5
 
 @page_actions.add_handler("TimeSelection")
@@ -23,11 +27,14 @@ class TimeSelectionHandler(PageHandler):
         try:
             times_list_expander = driver.find_element("xpath", f"//a/div[@class='date-text']/span[normalize-space()='{date_str}']/../..")
         except NoSuchElementException:
+            # Could not find date dropdown
             if REFRESH_IF_NOT_FOUND:
                 # Refresh page and exit if time not available yet
                 driver.refresh()
                 time.sleep(SLEEP_BETWEEN_REFRESH)
                 return HandlerResponse(False, None)
+            elif RESTART_FLOW_IF_NOT_FOUND:
+                return HandlerResponse(restart_flow=True)
             else:
                 raise TimeSlotNotAvailable(f"No time slots found for {date_str}.")
         times_list_expander.click()
@@ -35,10 +42,13 @@ class TimeSelectionHandler(PageHandler):
         try:
             button = driver.find_element("xpath", f"//a/div[@class='date-text']/span[normalize-space()='{date_str}']/../../following-sibling::ul[normalize-space(@class)='times-list']//span[normalize-space()='{time_str}']/..")
         except NoSuchElementException:
+            # Could not find timeslot within date dropdown
             if REFRESH_IF_NOT_FOUND:
                 driver.refresh()
                 time.sleep(SLEEP_BETWEEN_REFRESH)
                 return HandlerResponse(False, None)
+            elif RESTART_FLOW_IF_NOT_FOUND:
+                return HandlerResponse(restart_flow=True)
             else:
                 raise TimeSlotNotAvailable(f"No time slots found for {time_str} on {date_str}")
         
@@ -48,6 +58,8 @@ class TimeSelectionHandler(PageHandler):
                 driver.refresh()
                 time.sleep(SLEEP_BETWEEN_REFRESH)
                 return HandlerResponse(False, None)
+            elif RESTART_FLOW_IF_FULL:
+                return HandlerResponse(restart_flow=True)
             else:
                 raise TimeSlotNotAvailable(f"Time slot for {time_str} on {date_str} is full.")
 

@@ -1,4 +1,5 @@
-from typing import NamedTuple, Callable, Type
+from typing import Callable, Type
+from dataclasses import dataclass
 import re
 from abc import ABC, abstractmethod
 import imaplib
@@ -8,9 +9,11 @@ import functools
 from selenium import webdriver
 
 
-class HandlerResponse(NamedTuple):
-    is_terminal: bool
-    new_kwargs: dict
+@dataclass
+class HandlerResponse():
+    is_terminal: bool = False
+    new_kwargs: dict = None
+    restart_flow: bool = False
 
 class PageHandler(ABC):
     @abstractmethod

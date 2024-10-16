@@ -51,7 +51,8 @@ def register(
         fix_hairline=True,
     )
     
-    driver.get(main_page.format(domain = domain, location_id = location))
+    start_url = main_page.format(domain = domain, location_id = location)
+    driver.get(start_url)
     time.sleep(0.5)
     while True:
         current_url = driver.current_url
@@ -78,6 +79,8 @@ def register(
             break
         if resp.new_kwargs is not None:
             local_kwargs.update(resp.new_kwargs)
+        if resp.restart_flow:
+            driver.get(start_url)
 
     time.sleep(1)
     driver.get_screenshot_as_file(f'./result-{task_id}.png')
