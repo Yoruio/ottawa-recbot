@@ -1,6 +1,7 @@
 import datetime
 from selenium.common.exceptions import NoSuchElementException
 import time
+from sys import platform
 
 from lib.utils import TimeSlotNotAvailable
 from lib.utils import page_actions, PageHandler, HandlerResponse
@@ -21,8 +22,12 @@ class TimeSelectionHandler(PageHandler):
         next_date = now + datetime.timedelta(days=date_diff)
         next_date = next_date.replace(second=00, minute=time_minute, hour=time_hour)
 
-        date_str = next_date.strftime("%A %B %-d, %Y")
-        time_str = next_date.strftime('%-I:%M %p')
+        if platform == "win32":
+            strip_zeros_char = "#"
+        else:
+            strip_zeros_char = "-"
+        date_str = next_date.strftime(f"%A %B %{strip_zeros_char}d, %Y")
+        time_str = next_date.strftime(f'%{strip_zeros_char}I:%M %p')
 
         try:
             times_list_expander = driver.find_element("xpath", f"//a/div[@class='date-text']/span[normalize-space()='{date_str}']/../..")
