@@ -29,6 +29,7 @@ def register(
         name: str,
         domain = "https://reservation.frontdesksuite.ca",
         main_page = "{domain}/rcfs/{location_id}/",
+        restart_flow_wait_time: int = 0,
         task_id = 0
     ):
     local_kwargs = locals()
@@ -40,7 +41,7 @@ def register(
     options.add_experimental_option("excludeSwitches", ["enable-automation"])
     options.add_experimental_option('useAutomationExtension', False)
     driver = webdriver.Chrome(options=options)
-    driver.implicitly_wait(10)
+    # driver.implicitly_wait(0)
 
     stealth(driver,
         languages=["en-US", "en"],
@@ -81,6 +82,7 @@ def register(
             local_kwargs.update(resp.new_kwargs)
         if resp.restart_flow:
             driver.get(start_url)
+            time.sleep(restart_flow_wait_time)
 
     time.sleep(1)
     driver.get_screenshot_as_file(f'./result-{task_id}.png')
